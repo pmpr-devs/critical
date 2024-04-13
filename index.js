@@ -16,12 +16,19 @@ import {getOptions} from './src/config.js';
  */
 export async function generate(params, cb) {
   try {
+    
     const options = getOptions(params);
     const {target = {}, base = process.cwd()} = options;
     const result = await create(options);
-    // Store generated css
-    if (target.css) {
-      await outputFileAsync(path.resolve(base, target.css), result.css);
+    
+    // Store generated atf
+    if (target.atf) {
+      await outputFileAsync(path.resolve(base, target.atf), result.atf);
+    }
+
+    // Store generated btf
+    if (target.btf) {
+      await outputFileAsync(path.resolve(base, target.btf), result.btf);
     }
 
     // Store generated html
@@ -41,7 +48,9 @@ export async function generate(params, cb) {
 
     return result;
   } catch (error) {
+
     if (typeof cb === 'function') {
+    
       cb(error);
       return;
     }

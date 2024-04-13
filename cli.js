@@ -239,7 +239,7 @@ function run(data) {
       } else if (opts.extract) {
         process.stdout.write(val.uncritical, process.exit);
       } else {
-        process.stdout.write(val.css, process.exit);
+        process.stdout.write(val.btf, process.exit);
       }
     });
   } catch (error) {
