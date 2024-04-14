@@ -218,7 +218,7 @@ export async function create(options = {}) {
 
     return criticalCSS;
   };
-  
+
   const
     atf = await prepareStyle(criticalStyles[0]),
     btf = await prepareStyle(criticalStyles[1]);
@@ -228,8 +228,6 @@ export async function create(options = {}) {
     btf: removeDuplicateStyles(btf, atf), // below the fold critical css
   };
 
-  console.log(result);
-
   Object.defineProperty(result, 'uncritical', {
     get: lazyUncritical(document.css, result.atf + result.btf),
   });
@@ -238,7 +236,6 @@ export async function create(options = {}) {
   await document.cleanup();
 
   result.html = document.contents.toString();
-  result.document = document;
 
   // Cleanup output
   return result;

@@ -1,5 +1,5 @@
 {
-  "name": "critical",
+  "name": "criticalstyle",
   "version": "7.1.1",
   "description": "Extract & Inline Critical-path CSS from HTML",
   "author": "Addy Osmani",
@@ -18,7 +18,7 @@
   ],
   "exports": {
     ".": "./index.js",
-    "./file.js": "./src/file.js",
+    "./file.js": "./src/file.js", 
     "./errors.js": "./src/errors.js"
   },
   "bin": "cli.js",
