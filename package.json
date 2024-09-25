@@ -18,7 +18,7 @@
   ],
   "exports": {
     ".": "./index.js",
-    "./file.js": "./src/file.js", 
+    "./file.js": "./src/file.js",
     "./errors.js": "./src/errors.js"
   },
   "bin": "cli.js",
@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@adobe/css-tools": "^4.3.3",
+    "betterpenthouse": "file:../penthouse",
     "clean-css": "^5.3.3",
     "common-tags": "^1.8.2",
     "css-url-parser": "^1.1.3",
@@ -53,7 +54,6 @@
     "meow": "^13.2.0",
     "oust": "^2.0.4",
     "p-all": "^5.0.0",
-    "penthouse": "^2.3.3",
     "picocolors": "^1.0.0",
     "plugin-error": "^2.0.1",
     "postcss": "^8.4.38",

@@ -1,23 +1,23 @@
-import { EOL } from 'node:os';
-import { Buffer } from 'node:buffer';
+import {EOL} from 'node:os';
+import {Buffer} from 'node:buffer';
 import process from 'node:process';
 import path from 'node:path';
 import pico from 'picocolors';
 import CleanCSS from 'clean-css';
-import { invokeMap } from 'lodash-es';
+import {invokeMap} from 'lodash-es';
 import pAll from 'p-all';
 import debugBase from 'debug';
 import postcss from 'postcss';
 import discard from 'postcss-discard';
 import imageInliner from 'postcss-image-inliner';
-import penthouse from 'penthouse';
-import { PAGE_UNLOADED_DURING_EXECUTION_ERROR_MESSAGE } from 'penthouse/lib/core.js';
-import { inline as inlineCritical } from 'inline-critical';
-import { removeDuplicateStyles } from 'inline-critical/css';
+import penthouse from 'betterpenthouse';
+import {PAGE_UNLOADED_DURING_EXECUTION_ERROR_MESSAGE} from 'penthouse/lib/core.js';
+import {inline as inlineCritical} from 'inline-critical';
+import {removeDuplicateStyles} from 'inline-critical/css';
 import parseCssUrls from 'css-url-parser';
-import { reduceAsync } from './array.js';
-import { NoCssError } from './errors.js';
-import { getDocument, getDocumentFromSource, token, getAssetPaths, isRemote, normalizePath } from './file.js';
+import {reduceAsync} from './array.js';
+import {NoCssError} from './errors.js';
+import {getDocument, getDocumentFromSource, token, getAssetPaths, isRemote, normalizePath} from './file.js';
 
 const debug = debugBase('critical:core');
 
@@ -41,23 +41,31 @@ function combineCss(cssArray) {
  * @returns {string} Critical css for various dimensions combined and deduped
  */
 function callPenthouse(document, options) {
-  const { width, height, userAgent, user, pass, penthouse: params = {} } = options;
-  const { customPageHeaders = {} } = params;
-  const { css: cssString, url } = document;
-  const config = { ...params, cssString, url };
+  const {dimensions, width, height, userAgent, user, pass, penthouse: params = {}} = options;
+  const {customPageHeaders = {}} = params;
+  const {css: cssString, url} = document;
+  const config = {...params, cssString, url};
   // Dimensions need to be sorted from small to wide. Otherwise the order gets corrupted
-  const sizes = [{ width, height }, { width: 1300, height: 99999 }];
-
+  // TODO: dimensions functionality not work now, because of atf and btf styles
+  // const sizes = Array.isArray(dimensions)
+  //   ? [...dimensions].sort((a, b) => (a.width || 0) - (b.width || 0))
+  //   : [{width, height}];
+  const sizes = [{width, height}];
   if (userAgent) {
     config.userAgent = userAgent;
   }
 
   if (user && pass) {
-    config.customPageHeaders = { ...customPageHeaders, Authorization: `Basic ${token(user, pass)}` };
+    config.customPageHeaders = {...customPageHeaders, Authorization: `Basic ${token(user, pass)}`};
   }
 
-  return sizes.map(({ width, height }) => () => {
-    const result = penthouse({ ...config, width, height });
+  return sizes.map(({width, height}) => () => {
+    // if (height >= 9999) {
+    //
+    //   config.forceInclude = ['*:hover', '*:active', '*:focus'];
+    //   config.propertiesToRemove = [];
+    // }
+    const result = penthouse({...config, width, height});
     debug('Call penthouse with:', {
       ...config,
       width,
@@ -108,10 +116,10 @@ export async function create(options = {}) {
   }
 
   // Generate critical css
-  let criticalStyles;
+  let criticalStyle;
   try {
     const tasks = callPenthouse(document, options);
-    criticalStyles = await pAll(tasks, { concurrency });
+    criticalStyle = await pAll(tasks, {concurrency});
   } catch (error) {
     if (error.message === PAGE_UNLOADED_DURING_EXECUTION_ERROR_MESSAGE) {
       process.stderr.write(pico.yellow(PAGE_UNLOADED_DURING_EXECUTION_ERROR_MESSAGE) + EOL);
@@ -184,14 +192,14 @@ export async function create(options = {}) {
     // Post-process critical css
     if (postProcess.length > 0) {
       criticalCSS = await postcss(postProcess)
-        .process(criticalCSS, { from: undefined })
+        .process(criticalCSS, {from: undefined})
         .then((contents) => contents.css);
     }
 
     criticalCSS = cleanCSS.minify(criticalCSS).styles;
     // Inline
     if (inline) {
-      const { replaceStylesheets } = inline;
+      const {replaceStylesheets} = inline;
 
       if (typeof replaceStylesheets === 'function') {
         inline.replaceStylesheets = await replaceStylesheets(document, result.uncritical);
@@ -212,16 +220,15 @@ export async function create(options = {}) {
         inline.extract = extract;
       }
 
-      const inlined = inlineCritical(document.contents.toString(), criticalCSS, { ...inline, basePath: document.cwd });
+      const inlined = inlineCritical(document.contents.toString(), criticalCSS, {...inline, basePath: document.cwd});
       document.contents = Buffer.from(inlined);
     }
 
     return criticalCSS;
   };
 
-  const
-    atf = await prepareStyle(criticalStyles[0]),
-    btf = await prepareStyle(criticalStyles[1]);
+  const atf = await prepareStyle(criticalStyle[0].atf),
+    btf = await prepareStyle(criticalStyle[0].btf);
 
   const result = {
     atf: atf, // above the fold critical css
