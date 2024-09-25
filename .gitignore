@@ -1,3 +1,4 @@
+/.idea
 /coverage/
 /node_modules/
 /test/fixture/bower_components/bootstrap/dist/css/*
