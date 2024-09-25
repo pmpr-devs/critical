@@ -11,7 +11,7 @@ import postcss from 'postcss';
 import discard from 'postcss-discard';
 import imageInliner from 'postcss-image-inliner';
 import penthouse from 'betterpenthouse';
-import {PAGE_UNLOADED_DURING_EXECUTION_ERROR_MESSAGE} from 'penthouse/lib/core.js';
+import {PAGE_UNLOADED_DURING_EXECUTION_ERROR_MESSAGE} from 'betterpenthouse/lib/core.js';
 import {inline as inlineCritical} from 'inline-critical';
 import {removeDuplicateStyles} from 'inline-critical/css';
 import parseCssUrls from 'css-url-parser';
